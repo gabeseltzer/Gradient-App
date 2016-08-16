@@ -132,31 +132,61 @@ void MainWindow::on_pushButton_clicked()
 void MainWindow::on_gradientStartSlider_sliderMoved(int position)
 {
     ui->gradientStartTextField->setText(QString::number(position));
+    if (position > ui->gradientEndSlider->value())
+    {
+        ui->gradientEndSlider->setValue(position);
+        ui->gradientEndTextField->setText(QString::number(position));
+    }
 }
 
 void MainWindow::on_gradientEndSlider_sliderMoved(int position)
 {
     ui->gradientEndTextField->setText(QString::number(position));
+    if (position < ui->gradientStartSlider->value())
+    {
+        ui->gradientStartSlider->setValue(position);
+        ui->gradientStartTextField->setText(QString::number(position));
+    }
 }
 
 void MainWindow::on_gradientStartTextField_returnPressed()
 {
     ui->gradientStartSlider->setValue(ui->gradientStartTextField->text().toInt());
+    if (ui->gradientStartSlider->value() > ui->gradientEndSlider->value())
+    {
+        ui->gradientEndSlider->setValue(ui->gradientStartSlider->value());
+        ui->gradientEndTextField->setText(ui->gradientStartTextField->text());
+    }
 }
 
 void MainWindow::on_gradientStartTextField_editingFinished()
 {
     ui->gradientStartSlider->setValue(ui->gradientStartTextField->text().toInt());
+    if (ui->gradientStartSlider->value() > ui->gradientEndSlider->value())
+    {
+        ui->gradientEndSlider->setValue(ui->gradientStartSlider->value());
+        ui->gradientEndTextField->setText(ui->gradientStartTextField->text());
+    }
 }
 
 void MainWindow::on_gradientEndTextField_editingFinished()
 {
     ui->gradientEndSlider->setValue(ui->gradientEndTextField->text().toInt());
+    if (ui->gradientEndSlider->value() < ui->gradientStartSlider->value())
+    {
+        ui->gradientStartSlider->setValue(ui->gradientEndSlider->value());
+        ui->gradientStartTextField->setText(ui->gradientEndTextField->text());
+    }
 }
 
 void MainWindow::on_gradientEndTextField_returnPressed()
 {
     ui->gradientEndSlider->setValue(ui->gradientEndTextField->text().toInt());
+    if (ui->gradientEndSlider->value() < ui->gradientStartSlider->value())
+    {
+        ui->gradientStartSlider->setValue(ui->gradientEndSlider->value());
+        ui->gradientStartTextField->setText(ui->gradientEndTextField->text());
+    }
 }
 
 void MainWindow::on_writeGcodeButton_clicked()
