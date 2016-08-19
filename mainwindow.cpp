@@ -131,7 +131,7 @@ void MainWindow::writeGcode(){
         writer << currentLine + "\n";
 
         //If this is a layer we need to add a gradient command to, add it
-        if (currentLine.contains("; layer " + QString::number(nextActiveLayer)))
+        if ((currentLine.contains("; layer " + QString::number(nextActiveLayer)) && (nextActiveLayer < gradientEndLayer)))
         {
             writer << "G93 R" + QString::number(nextActivePercent) + "\n";
 
