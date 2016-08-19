@@ -24,9 +24,6 @@
      </rect>
     </property>
     <layout class="QFormLayout" name="formLayout">
-     <item row="0" column="1">
-      <widget class="QTextBrowser" name="fileOutput"/>
-     </item>
      <item row="0" column="0">
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
@@ -189,6 +186,9 @@
        </item>
       </layout>
      </item>
+     <item row="0" column="1">
+      <widget class="QTextBrowser" name="fileOutput"/>
+     </item>
     </layout>
    </widget>
   </widget>
@@ -201,6 +201,13 @@
      <height>21</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionOpen_File"/>
+   </widget>
+   <addaction name="menuFile"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -211,6 +218,11 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionOpen_File">
+   <property name="text">
+    <string>Open File</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>

@@ -80,12 +80,7 @@ void MainWindow::writeGcode(){
     int gradientEndLayer = ui->gradientEndSlider->value();
     int gradientStartPercent = ui->gradeintStartSpinBox->value();
     int gradientEndPercent = ui->gradientEndSpinBox->value();
-    int delta = 1;
-    if (gradientStartPercent > gradientEndPercent)
-        delta = -1;
-    int nextGLayer = gradientStartLayer;
-    int gAmmount = gradientStartPercent;
-    int interval = calculateGradientShifts(gradientStartLayer, gradientEndLayer, gradientStartPercent, gradientEndPercent);
+
     QString currentLine;
     QString defaultFileSaveName = gcodeFile->fileName();
     defaultFileSaveName = defaultFileSaveName.mid(0,defaultFileSaveName.size()-6) + " Gradient";
@@ -94,26 +89,81 @@ void MainWindow::writeGcode(){
     QFile saveFile(saveFileName);
     saveFile.open(QIODevice::WriteOnly);
     QTextStream writer(&saveFile);
-    currentLine = reader.readLine();
-    while (gAmmount != (gradientEndPercent + delta))
-    {
-//        qDebug() << "Current gAmmount: " + QString::number(gAmmount) + "Current nextGLayer: " + QString::number(nextGLayer) + "Current Line: " + currentLine;
-        writer << currentLine + "\n";
-        if (currentLine.contains("; layer " + QString::number(nextGLayer)))
-        {
-            writer << "G93 R" + QString::number(gAmmount) + "\n";
-            gAmmount += delta;
-            nextGLayer += interval;
-        }
-        currentLine = reader.readLine();
-    }
-    writer << currentLine + "\n";
+
+    //Default Layer and Percent deltas
+    float percentDelta = 1.0;
+    float layerDelta = 1.0;
+
+//    int delta = 1;
+//    if (gradientStartPercent > gradientEndPercent)
+//        delta = -1;
+
+//    int nextGLayer = gradientStartLayer;
+//    int gAmmount = gradientStartPercent;
+//    int interval = calculateGradientShifts(gradientStartLayer, gradientEndLayer, gradientStartPercent, gradientEndPercent);
+
+    //First, check to see if we're increasing gradient percent
+    int ascending = 1;
+    if (gradientStartPercent > gradientEndPercent)
+        ascending = -1;
+
+    //Also, lets keep track of how many percents we're changing (absolute value)
+    int activePercents = abs(gradientEndPercent - gradientStartPercent);
+    //Next, calculate the number of layers we have to work with
+    int activeLayers = gradientEndLayer - gradientStartLayer;
+
+    //See if we're moving more than one percent at a time, or more than one layer at a time
+    if (activeLayers < activePercents)
+        percentDelta = (float)activePercents/(float)activeLayers;
+    else
+        layerDelta = (float)activeLayers/(float)activePercents;
+
+    float fNextActiveLayer = gradientStartLayer;
+    int nextActiveLayer = gradientStartLayer;
+    float fNextActivePercent = gradientStartPercent;
+    int nextActivePercent = gradientStartPercent;
+    qDebug() << "fNextActiveLayer:" + QString::number(fNextActiveLayer) + " , nextActiveLayer: " + QString::number(nextActiveLayer) + " , fNextActivePercent: " + QString::number(fNextActivePercent) + " , nextActivePercent: " + QString::number(nextActivePercent);
+    qDebug() << "ascending: " + QString::number(ascending) + ", percentDelta: " + QString::number(percentDelta) + ", layerDelta: " + QString::number(layerDelta) + ", activeLayers: " + QString::number(activeLayers) + ", activePercents: " + QString::number(activePercents);
     while (!reader.atEnd())
     {
+        //Read next line, transcribe it
         currentLine = reader.readLine();
         writer << currentLine + "\n";
+
+        //If this is a layer we need to add a gradient command to, add it
+        if (currentLine.contains("; layer " + QString::number(nextActiveLayer)))
+        {
+            writer << "G93 R" + QString::number(nextActivePercent) + "\n";
+
+            //Adjust the searching variables to find the next active layer
+            fNextActiveLayer += layerDelta;
+            nextActiveLayer = qRound(fNextActiveLayer);
+            fNextActivePercent += (percentDelta * ascending);
+            nextActivePercent = qRound(fNextActivePercent);
+            qDebug() << "fNextActiveLayer:" + QString::number(fNextActiveLayer) + " , nextActiveLayer: " + QString::number(nextActiveLayer) + " , fNextActivePercent: " + QString::number(fNextActivePercent) + " , nextActivePercent: " + QString::number(nextActivePercent);
+        }
     }
     QMessageBox::information(0,"done","All Done!");
+
+//    while (gAmmount != (gradientEndPercent + delta))
+//    {
+////        qDebug() << "Current gAmmount: " + QString::number(gAmmount) + "Current nextGLayer: " + QString::number(nextGLayer) + "Current Line: " + currentLine;
+//        writer << currentLine + "\n";
+//        if (currentLine.contains("; layer " + QString::number(nextGLayer)))
+//        {
+//            writer << "G93 R" + QString::number(gAmmount) + "\n";
+//            gAmmount += delta;
+//            nextGLayer += interval;
+//        }
+//        currentLine = reader.readLine();
+//    }
+//    writer << currentLine + "\n";
+//    while (!reader.atEnd())
+//    {
+//        currentLine = reader.readLine();
+//        writer << currentLine + "\n";
+//    }
+//    QMessageBox::information(0,"done","All Done!");
 }
 
 int MainWindow::calculateGradientShifts(int start, int end, int startPercent, int endPercent)
