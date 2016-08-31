@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>992</width>
-    <height>426</height>
+    <height>588</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,87 +17,74 @@
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>10</y>
-      <width>951</width>
-      <height>361</height>
+      <x>12</x>
+      <y>11</y>
+      <width>1191</width>
+      <height>1142</height>
      </rect>
     </property>
-    <layout class="QFormLayout" name="formLayout">
+    <layout class="QFormLayout" name="formLayout_3">
+     <item row="0" column="1">
+      <widget class="QTextBrowser" name="fileOutput"/>
+     </item>
      <item row="0" column="0">
-      <layout class="QVBoxLayout" name="verticalLayout_4">
-       <item>
-        <layout class="QVBoxLayout" name="verticalLayout_3">
-         <item>
-          <widget class="QSplitter" name="splitter">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <widget class="QLineEdit" name="filePath"/>
-           <widget class="QPushButton" name="pushButton">
-            <property name="text">
-             <string>Open File</string>
-            </property>
-           </widget>
-          </widget>
-         </item>
-         <item>
-          <layout class="QGridLayout" name="gridLayout">
-           <item row="0" column="1">
-            <widget class="QLabel" name="label">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
+      <layout class="QFormLayout" name="formLayout_2">
+       <property name="verticalSpacing">
+        <number>6</number>
+       </property>
+       <item row="0" column="0">
+        <layout class="QFormLayout" name="formLayout">
+         <item row="0" column="0" colspan="2">
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <item>
+            <widget class="QLineEdit" name="filePath"/>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton">
              <property name="text">
-              <string>Gradient % Start</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QSpinBox" name="gradeintStartSpinBox">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="maximum">
-              <number>100</number>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QSpinBox" name="gradientEndSpinBox">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="maximum">
-              <number>100</number>
-             </property>
-             <property name="value">
-              <number>100</number>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QLabel" name="label_2">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string>Gradient % End</string>
+              <string>Open File</string>
              </property>
             </widget>
            </item>
           </layout>
          </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout">
-         <item>
-          <layout class="QVBoxLayout" name="GradientStartSliderBox">
+         <item row="1" column="0">
+          <layout class="QVBoxLayout" name="verticalLayout">
+           <item alignment="Qt::AlignHCenter">
+            <widget class="QLabel" name="label_4">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Gradient Start</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
            <item alignment="Qt::AlignHCenter">
             <widget class="QSlider" name="gradientStartSlider">
              <property name="enabled">
               <bool>false</bool>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
              </property>
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -124,20 +111,45 @@
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="label_4">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
+            <widget class="QPushButton" name="gradientStartColorButton">
              <property name="text">
-              <string>Gradient Start</string>
+              <string/>
              </property>
             </widget>
            </item>
           </layout>
          </item>
-         <item>
-          <layout class="QVBoxLayout" name="GradientEndSliderBox">
-           <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+         <item row="1" column="1">
+          <layout class="QVBoxLayout" name="verticalLayout_2">
+           <item alignment="Qt::AlignHCenter">
+            <widget class="QLabel" name="label_3">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Gradient End</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item alignment="Qt::AlignHCenter">
             <widget class="QSlider" name="gradientEndSlider">
              <property name="enabled">
               <bool>false</bool>
@@ -161,12 +173,9 @@
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="label_3">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
+            <widget class="QPushButton" name="gradientEndColorButton">
              <property name="text">
-              <string>Gradient End</string>
+              <string/>
              </property>
             </widget>
            </item>
@@ -174,7 +183,7 @@
          </item>
         </layout>
        </item>
-       <item>
+       <item row="1" column="0">
         <widget class="QPushButton" name="writeGcodeButton">
          <property name="enabled">
           <bool>false</bool>
@@ -185,9 +194,6 @@
         </widget>
        </item>
       </layout>
-     </item>
-     <item row="0" column="1">
-      <widget class="QTextBrowser" name="fileOutput"/>
      </item>
     </layout>
    </widget>

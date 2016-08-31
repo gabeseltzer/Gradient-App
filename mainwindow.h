@@ -34,6 +34,10 @@ private slots:
 
     void on_writeGcodeButton_clicked();
 
+    void on_gradientStartColorButton_clicked();
+
+    void on_gradientEndColorButton_clicked();
+
 private:
     Ui::MainWindow *ui;
     void openFile();

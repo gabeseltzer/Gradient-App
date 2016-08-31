@@ -8,6 +8,8 @@
 #include <string>
 #include <QVector>
 #include <QVectorIterator>
+#include <QColorDialog>
+#include <QPalette>
 
 QFile *gcodeFile;
 
@@ -71,15 +73,17 @@ void MainWindow::processGcode(){
 
     ui->writeGcodeButton->setEnabled(true);
 
-    ui->gradeintStartSpinBox->setEnabled(true);
-    ui->gradientEndSpinBox->setEnabled(true);
+    ui->gradientStartColorButton->setEnabled(true);
+    ui->gradientStartColorButton->setStyleSheet("background-color: black");
+    ui->gradientEndColorButton->setEnabled(true);
+    ui->gradientEndColorButton->setStyleSheet("background-color: white");
 }
 
 void MainWindow::writeGcode(){
     int gradientStartLayer = ui->gradientStartSlider->value();
     int gradientEndLayer = ui->gradientEndSlider->value();
-    int gradientStartPercent = ui->gradeintStartSpinBox->value();
-    int gradientEndPercent = ui->gradientEndSpinBox->value();
+    int gradientStartPercent = 1; //TODO
+    int gradientEndPercent = 1; //TODO
 
     QString currentLine;
     QString defaultFileSaveName = gcodeFile->fileName();
@@ -93,14 +97,6 @@ void MainWindow::writeGcode(){
     //Default Layer and Percent deltas
     float percentDelta = 1.0;
     float layerDelta = 1.0;
-
-//    int delta = 1;
-//    if (gradientStartPercent > gradientEndPercent)
-//        delta = -1;
-
-//    int nextGLayer = gradientStartLayer;
-//    int gAmmount = gradientStartPercent;
-//    int interval = calculateGradientShifts(gradientStartLayer, gradientEndLayer, gradientStartPercent, gradientEndPercent);
 
     //First, check to see if we're increasing gradient percent
     int ascending = 1;
@@ -242,4 +238,22 @@ void MainWindow::on_gradientEndTextField_returnPressed()
 void MainWindow::on_writeGcodeButton_clicked()
 {
     writeGcode();
+}
+
+void MainWindow::on_gradientStartColorButton_clicked()
+{
+    QPalette pal = ui->gradientStartColorButton->palette();
+    QColor newColor = QColorDialog::getColor(pal.color(QPalette::Button));
+    QString newStyle = "background-color: " + newColor.name();
+    ui->gradientStartColorButton->setStyleSheet(newStyle);
+    ui->gradientStartColorButton->update();
+}
+
+void MainWindow::on_gradientEndColorButton_clicked()
+{
+    QPalette pal = ui->gradientEndColorButton->palette();
+    QColor newColor = QColorDialog::getColor(pal.color(QPalette::Button));
+    QString newStyle = "background-color: " + newColor.name();
+    ui->gradientEndColorButton->setStyleSheet(newStyle);
+    ui->gradientEndColorButton->update();
 }
