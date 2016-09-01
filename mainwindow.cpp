@@ -82,8 +82,24 @@ void MainWindow::processGcode(){
 void MainWindow::writeGcode(){
     int gradientStartLayer = ui->gradientStartSlider->value();
     int gradientEndLayer = ui->gradientEndSlider->value();
-    int gradientStartPercent = 1; //TODO
-    int gradientEndPercent = 1; //TODO
+
+    //Get the current Colors of the two gradient buttons
+    QPalette startPal = ui->gradientStartColorButton->palette();
+    QColor startColor = startPal.color(QPalette::Button);
+    QPalette endPal = ui->gradientEndColorButton->palette();
+    QColor endColor = endPal.color(QPalette::Button);
+
+    //Now get the CMY componants of the corresponding colors
+    int cyanStartWeight = startColor.cyan();
+    int magentaStartWeight = startColor.magenta();
+    int yellowStartWeight = startColor.yellow();
+
+    int cyanEndWeight = endColor.cyan();
+    int magentaEndWeight = endColor.magenta();
+    int yellowEndWeight = endColor.yellow();
+
+    int gradientStartPercent = 1;// To Remove
+    int gradientEndPercent = 1; //To Remove
 
     QString currentLine;
     QString defaultFileSaveName = gcodeFile->fileName();
