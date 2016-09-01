@@ -101,9 +101,6 @@ void MainWindow::writeGcode(){
     int magentaEndWeight = endColor.magenta();
     int yellowEndWeight = endColor.yellow();
 
-    int gradientStartPercent = 1;// To Remove
-    int gradientEndPercent = 1; //To Remove
-
     QString currentLine;
     QString defaultFileSaveName = gcodeFile->fileName();
     defaultFileSaveName = defaultFileSaveName.mid(0,defaultFileSaveName.size()-6) + " Gradient";
@@ -115,32 +112,47 @@ void MainWindow::writeGcode(){
     saveFile.open(QIODevice::WriteOnly);
     QTextStream writer(&saveFile);
 
-    //Default Layer and Percent deltas
-    float percentDelta = 1.0;
-    float layerDelta = 1.0;
+    //Default Layer and Weight deltas
+    float cyanWeightDelta = 1.0;
+    float magentaWeightDelta = 1.0;
+    float yellowWeightDelta = 1.0;
 
-    //First, check to see if we're increasing gradient percent
-    int ascending = 1;
-    if (gradientStartPercent > gradientEndPercent)
-        ascending = -1;
+////    First, check to see if we're increasing gradient percent for each color
+//    int cyanAascending = 1;
+//    if (cyanStartWeight > cyanEndWeight)
+//        cyanAscending = -1;
+//    int magentaAascending = 1;
+//    if (magentaStartWeight > magentaEndWeight)
+//        magentaAscending = -1;
+//    int yellowAascending = 1;
+//    if (yellowStartWeight > yellowEndWeight)
+//        yellowAscending = -1;
 
     //Also, lets keep track of how many percents we're changing (absolute value)
-    int activePercents = abs(gradientEndPercent - gradientStartPercent);
+    int cyanActiveWeights = abs(cyanEndWeight - cyanStartWeight);
+    int magentaActiveWeights = abs(magentaEndWeight - magentaStartWeight);
+    int yellowActiveWeights = abs(yellowEndWeight - yellowStartWeight);
+
     //Next, calculate the number of layers we have to work with
     int activeLayers = gradientEndLayer - gradientStartLayer;
 
-    //See if we're moving more than one percent at a time, or more than one layer at a time
-    if (activeLayers < activePercents)
-        percentDelta = (float)activePercents/(float)activeLayers;
-    else
-        layerDelta = (float)activeLayers/(float)activePercents;
+    //How much should we change the weight of each color per layer
+    cyanWeightDelta = (float)cyanActiveWeights/(float)activeLayers;
+    magentaWeightDelta = (float)magentaActiveWeights/(float)activeLayers;
+    yellowWeightDelta = (float)yellowActiveWeights/(float)activeLayers;
 
-    float fNextActiveLayer = gradientStartLayer;
+    //Now these are the variables we'll increment in the loop through the input file
     int nextActiveLayer = gradientStartLayer;
-    float fNextActivePercent = gradientStartPercent;
-    int nextActivePercent = gradientStartPercent;
-    qDebug() << "fNextActiveLayer:" + QString::number(fNextActiveLayer) + " , nextActiveLayer: " + QString::number(nextActiveLayer) + " , fNextActivePercent: " + QString::number(fNextActivePercent) + " , nextActivePercent: " + QString::number(nextActivePercent);
-    qDebug() << "ascending: " + QString::number(ascending) + ", percentDelta: " + QString::number(percentDelta) + ", layerDelta: " + QString::number(layerDelta) + ", activeLayers: " + QString::number(activeLayers) + ", activePercents: " + QString::number(activePercents);
+    float fCyanNextActiveWeight = cyanStartWeight;
+    int cyanNextActiveWeight = cyanStartWeight;
+    float fMagentaNextActiveWeight = magentaStartWeight;
+    int magentaNextActiveWeight = magentaStartWeight;
+    float fYellowNextActiveWeight = yellowStartWeight;
+    int yellowNextActiveWeight = yellowStartWeight;
+
+
+//    qDebug() << "fNextActiveLayer:" + QString::number(fNextActiveLayer) + " , nextActiveLayer: " + QString::number(nextActiveLayer) + " , fNextActivePercent: " + QString::number(fNextActivePercent) + " , nextActivePercent: " + QString::number(nextActivePercent);
+//    qDebug() << "ascending: " + QString::number(ascending) + ", percentDelta: " + QString::number(percentDelta) + ", layerDelta: " + QString::number(layerDelta) + ", activeLayers: " + QString::number(activeLayers) + ", activePercents: " + QString::number(activePercents);
     while (!reader.atEnd())
     {
         //Read next line, transcribe it
@@ -150,25 +162,32 @@ void MainWindow::writeGcode(){
         //If this is a layer we need to add a gradient command to, add it
         if ((currentLine.contains("; layer " + QString::number(nextActiveLayer)) && (nextActiveLayer < gradientEndLayer)))
         {
-            writer << "G93 R" + QString::number(nextActivePercent) + "\n";
+            writer << "M163 S0 P" + QString::number(cyanNextActiveWeight) + "\n" +
+                      "M163 S1 P" + QString::number(magentaNextActiveWeight) + "\n" +
+                      "M163 S2 P" + QString::number(yellowNextActiveWeight) + "\n" +
+                      "M164 S0" + "\n";
 
             //Adjust the searching variables to find the next active layer
-            fNextActiveLayer += layerDelta;
-            nextActiveLayer = qRound(fNextActiveLayer);
-            fNextActivePercent += (percentDelta * ascending);
-            nextActivePercent = qRound(fNextActivePercent);
-            qDebug() << "fNextActiveLayer:" + QString::number(fNextActiveLayer) + " , nextActiveLayer: " + QString::number(nextActiveLayer) + " , fNextActivePercent: " + QString::number(fNextActivePercent) + " , nextActivePercent: " + QString::number(nextActivePercent);
+            nextActiveLayer += 1;
+            fCyanNextActiveWeight += cyanWeightDelta;
+            cyanNextActiveWeight = qRound(fCyanNextActiveWeight);
+            fMagentaNextActiveWeight += magentaWeightDelta;
+            magentaNextActiveWeight = qRound(fMagentaNextActiveWeight);
+            fYellowNextActiveWeight += yellowWeightDelta;
+            yellowNextActiveWeight = qRound(fYellowNextActiveWeight);
+
+//            qDebug() << "fNextActiveLayer:" + QString::number(fNextActiveLayer) + " , nextActiveLayer: " + QString::number(nextActiveLayer) + " , fNextActivePercent: " + QString::number(fNextActivePercent) + " , nextActivePercent: " + QString::number(nextActivePercent);
         }
     }
     QMessageBox::information(0,"done","All Done!");
 }
 
-int MainWindow::calculateGradientShifts(int start, int end, int startPercent, int endPercent)
-{
-    int range = (end - start)/abs(endPercent - startPercent);
-//    qDebug() << (QString::number(end) + " - " + QString::number(start) + ") / abs (" + QString::number(endPercent) + " - " + QString::number(startPercent) + " = " + QString::number(range));
-    return range;
-}
+//int MainWindow::calculateGradientShifts(int start, int end, int startPercent, int endPercent)
+//{
+//    int range = (end - start)/abs(endPercent - startPercent);
+////    qDebug() << (QString::number(end) + " - " + QString::number(start) + ") / abs (" + QString::number(endPercent) + " - " + QString::number(startPercent) + " = " + QString::number(range));
+//    return range;
+//}
 
 void MainWindow::on_pushButton_clicked()
 {
