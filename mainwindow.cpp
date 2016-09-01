@@ -27,6 +27,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::openFile() {
     QString filename = QFileDialog::getOpenFileName(this, tr("Open File"), "C://", "Gcode Files(*.gcode);;Text Files (*.txt);;All files (*.*)");
+    if (filename.isNull())
+        return;
     ui->filePath->setText(filename);
     gcodeFile = new QFile(filename);
     if(!gcodeFile->open(QIODevice::ReadOnly))
@@ -35,6 +37,7 @@ void MainWindow::openFile() {
         //TODO: Takes too long to show on screen
 //    ui->fileOutput->setText(in.readAll());
 //    in.seek(0);
+     processGcode();
 }
 
 int countLayers(){
@@ -105,6 +108,8 @@ void MainWindow::writeGcode(){
     QString defaultFileSaveName = gcodeFile->fileName();
     defaultFileSaveName = defaultFileSaveName.mid(0,defaultFileSaveName.size()-6) + " Gradient";
     QString saveFileName = QFileDialog::getSaveFileName(this, tr("Save File"), defaultFileSaveName, "Gcode Files(*.gcode);;Text Files (*.txt);;All files (*.*)");
+    if (saveFileName.isNull())
+        return;
     QTextStream reader(gcodeFile);
     QFile saveFile(saveFileName);
     saveFile.open(QIODevice::WriteOnly);
@@ -156,26 +161,6 @@ void MainWindow::writeGcode(){
         }
     }
     QMessageBox::information(0,"done","All Done!");
-
-//    while (gAmmount != (gradientEndPercent + delta))
-//    {
-////        qDebug() << "Current gAmmount: " + QString::number(gAmmount) + "Current nextGLayer: " + QString::number(nextGLayer) + "Current Line: " + currentLine;
-//        writer << currentLine + "\n";
-//        if (currentLine.contains("; layer " + QString::number(nextGLayer)))
-//        {
-//            writer << "G93 R" + QString::number(gAmmount) + "\n";
-//            gAmmount += delta;
-//            nextGLayer += interval;
-//        }
-//        currentLine = reader.readLine();
-//    }
-//    writer << currentLine + "\n";
-//    while (!reader.atEnd())
-//    {
-//        currentLine = reader.readLine();
-//        writer << currentLine + "\n";
-//    }
-//    QMessageBox::information(0,"done","All Done!");
 }
 
 int MainWindow::calculateGradientShifts(int start, int end, int startPercent, int endPercent)
@@ -188,7 +173,6 @@ int MainWindow::calculateGradientShifts(int start, int end, int startPercent, in
 void MainWindow::on_pushButton_clicked()
 {
     openFile();
-    processGcode();
 }
 
 void MainWindow::on_gradientStartSlider_sliderMoved(int position)
