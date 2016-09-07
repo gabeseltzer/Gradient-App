@@ -1,0 +1,6 @@
+# Gradient-App
+A QT Gui app for postprocessing Gcode to add a gradient. Works with Simplify3D only for the moment
+This app was created by Gabriel Seltzer
+It is licensed under LGPL V3. There's a copy of the license in the repo, as per the requirements of the license.
+
+This branch is for use with the Diamond Hotend (I'm testing on the Witbox)
