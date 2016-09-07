@@ -1,3 +1,6 @@
+//Written by Gabriel Seltzer
+//Released under LGPL licensing
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QFileDialog>
