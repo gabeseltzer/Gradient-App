@@ -37,18 +37,18 @@ void MainWindow::openFile() {
     if(!gcodeFile->open(QIODevice::ReadOnly))
         QMessageBox::information(0,"info",gcodeFile->errorString());
     QTextStream in(gcodeFile);
-        //TODO: Takes too long to show on screen
-//    ui->fileOutput->setText(in.readAll());
-//    in.seek(0);
+    ui->plainTextEdit->setPlainText(in.readAll());
+    in.seek(0);
      processGcode();
 }
 
-int countLayers(){
+int MainWindow::countLayers(){
     QTextStream reader(gcodeFile);
     QString currentLine;
     int lineCount = 0;
     while(!reader.atEnd()){
         currentLine = reader.readLine();
+        //TODO: Put code in the plainTextEdit widget here, so I only have to run through the gcode file once
         if (currentLine.contains("; layer"))
         {
             lineCount++;
@@ -111,6 +111,8 @@ void MainWindow::writeGcode(){
     if (saveFileName.isNull())
         return;
     QTextStream reader(gcodeFile);
+    if (reader.atEnd())
+        reader.seek(0);
     QFile saveFile(saveFileName);
     saveFile.open(QIODevice::WriteOnly);
     QTextStream writer(&saveFile);
@@ -120,16 +122,16 @@ void MainWindow::writeGcode(){
     float magentaWeightDelta = 1.0;
     float yellowWeightDelta = 1.0;
 
-////    First, check to see if we're increasing gradient percent for each color
-//    int cyanAascending = 1;
-//    if (cyanStartWeight > cyanEndWeight)
-//        cyanAscending = -1;
-//    int magentaAascending = 1;
-//    if (magentaStartWeight > magentaEndWeight)
-//        magentaAscending = -1;
-//    int yellowAascending = 1;
-//    if (yellowStartWeight > yellowEndWeight)
-//        yellowAscending = -1;
+//    First, check to see if we're increasing gradient percent for each color
+    int cyanAscending = 1;
+    if (cyanStartWeight > cyanEndWeight)
+        cyanAscending = -1;
+    int magentaAscending = 1;
+    if (magentaStartWeight > magentaEndWeight)
+        magentaAscending = -1;
+    int yellowAscending = 1;
+    if (yellowStartWeight > yellowEndWeight)
+        yellowAscending = -1;
 
     //Also, lets keep track of how many percents we're changing (absolute value)
     int cyanActiveWeights = abs(cyanEndWeight - cyanStartWeight);
@@ -172,11 +174,11 @@ void MainWindow::writeGcode(){
 
             //Adjust the searching variables to find the next active layer
             nextActiveLayer += 1;
-            fCyanNextActiveWeight += cyanWeightDelta;
+            fCyanNextActiveWeight += cyanWeightDelta*cyanAscending;
             cyanNextActiveWeight = qRound(fCyanNextActiveWeight);
-            fMagentaNextActiveWeight += magentaWeightDelta;
+            fMagentaNextActiveWeight += magentaWeightDelta*magentaAscending;
             magentaNextActiveWeight = qRound(fMagentaNextActiveWeight);
-            fYellowNextActiveWeight += yellowWeightDelta;
+            fYellowNextActiveWeight += yellowWeightDelta*yellowAscending;
             yellowNextActiveWeight = qRound(fYellowNextActiveWeight);
 
 //            qDebug() << "fNextActiveLayer:" + QString::number(fNextActiveLayer) + " , nextActiveLayer: " + QString::number(nextActiveLayer) + " , fNextActivePercent: " + QString::number(fNextActivePercent) + " , nextActivePercent: " + QString::number(nextActivePercent);
@@ -266,6 +268,8 @@ void MainWindow::on_gradientStartColorButton_clicked()
 {
     QPalette pal = ui->gradientStartColorButton->palette();
     QColor newColor = QColorDialog::getColor(pal.color(QPalette::Button));
+    if (!newColor.isValid())
+        return;
     QString newStyle = "background-color: " + newColor.name();
     ui->gradientStartColorButton->setStyleSheet(newStyle);
     ui->gradientStartColorButton->update();
@@ -275,6 +279,8 @@ void MainWindow::on_gradientEndColorButton_clicked()
 {
     QPalette pal = ui->gradientEndColorButton->palette();
     QColor newColor = QColorDialog::getColor(pal.color(QPalette::Button));
+    if (!newColor.isValid())
+        return;
     QString newStyle = "background-color: " + newColor.name();
     ui->gradientEndColorButton->setStyleSheet(newStyle);
     ui->gradientEndColorButton->update();

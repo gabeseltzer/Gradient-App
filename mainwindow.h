@@ -42,7 +42,7 @@ private:
     Ui::MainWindow *ui;
     void openFile();
     void processGcode();
-    int countLines();
+    int countLayers();
     void writeGcode();
     int calculateGradientShifts(int start, int end, int startPercent, int endPercent);
 };

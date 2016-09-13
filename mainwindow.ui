@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>992</width>
-    <height>588</height>
+    <width>897</width>
+    <height>369</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,16 +17,13 @@
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>12</x>
-      <y>11</y>
-      <width>1191</width>
-      <height>1142</height>
+      <x>10</x>
+      <y>10</y>
+      <width>871</width>
+      <height>301</height>
      </rect>
     </property>
     <layout class="QFormLayout" name="formLayout_3">
-     <item row="0" column="1">
-      <widget class="QTextBrowser" name="fileOutput"/>
-     </item>
      <item row="0" column="0">
       <layout class="QFormLayout" name="formLayout_2">
        <property name="verticalSpacing">
@@ -195,6 +192,9 @@
        </item>
       </layout>
      </item>
+     <item row="0" column="1">
+      <widget class="QPlainTextEdit" name="plainTextEdit"/>
+     </item>
     </layout>
    </widget>
   </widget>
@@ -203,7 +203,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>992</width>
+     <width>897</width>
      <height>21</height>
     </rect>
    </property>
