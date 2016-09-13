@@ -31,7 +31,6 @@ DISTFILES += \
     Icons/Gradient App Icon.ai \
     Icons/Gradient App Icon.png \
     Icons/Gradient App Icon.ai \
-    Icons/gradient_app_icon_01_7Bb_icon.ico \
     Icons/gradient_app_icon_01_doP_icon.ico \
     Icons/gradient_app_icon_01_gBN_icon.ico \
     Icons/gradient_app_icon_01_N04_icon.ico \
