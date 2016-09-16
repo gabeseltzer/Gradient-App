@@ -43,7 +43,6 @@ private:
     void openFile();
     void processGcode();
     int countLayers();
-    void writeGcode();
     int calculateGradientShifts(int start, int end, int startPercent, int endPercent);
 };
 

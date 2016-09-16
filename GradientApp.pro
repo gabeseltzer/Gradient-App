@@ -14,7 +14,8 @@ TEMPLATE = app
 win32:RC_ICONS += gradientAppIconLarge.ico
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    gcodeparser.cpp
 
 HEADERS  += mainwindow.h
 

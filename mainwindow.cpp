@@ -13,6 +13,7 @@
 #include <QVectorIterator>
 #include <QColorDialog>
 #include <QPalette>
+#include "gcodeParser.cpp"
 
 QFile *gcodeFile;
 
@@ -83,116 +84,10 @@ void MainWindow::processGcode(){
     ui->gradientStartColorButton->setStyleSheet("background-color: black");
     ui->gradientEndColorButton->setEnabled(true);
     ui->gradientEndColorButton->setStyleSheet("background-color: white");
+
+    ui->retractionCheckbox->setEnabled(true);
+    ui->plainTextEdit->setEnabled(true);
 }
-
-void MainWindow::writeGcode(){
-    int gradientStartLayer = ui->gradientStartSlider->value();
-    int gradientEndLayer = ui->gradientEndSlider->value();
-
-    //Get the current Colors of the two gradient buttons
-    QPalette startPal = ui->gradientStartColorButton->palette();
-    QColor startColor = startPal.color(QPalette::Button);
-    QPalette endPal = ui->gradientEndColorButton->palette();
-    QColor endColor = endPal.color(QPalette::Button);
-
-    //Now get the CMY componants of the corresponding colors
-    int cyanStartWeight = startColor.cyan();
-    int magentaStartWeight = startColor.magenta();
-    int yellowStartWeight = startColor.yellow();
-
-    int cyanEndWeight = endColor.cyan();
-    int magentaEndWeight = endColor.magenta();
-    int yellowEndWeight = endColor.yellow();
-
-    QString currentLine;
-    QString defaultFileSaveName = gcodeFile->fileName();
-    defaultFileSaveName = defaultFileSaveName.mid(0,defaultFileSaveName.size()-6) + " Gradient";
-    QString saveFileName = QFileDialog::getSaveFileName(this, tr("Save File"), defaultFileSaveName, "Gcode Files(*.gcode);;Text Files (*.txt);;All files (*.*)");
-    if (saveFileName.isNull())
-        return;
-    QTextStream reader(gcodeFile);
-    if (reader.atEnd())
-        reader.seek(0);
-    QFile saveFile(saveFileName);
-    saveFile.open(QIODevice::WriteOnly);
-    QTextStream writer(&saveFile);
-
-    //Default Layer and Weight deltas
-    float cyanWeightDelta = 1.0;
-    float magentaWeightDelta = 1.0;
-    float yellowWeightDelta = 1.0;
-
-//    First, check to see if we're increasing gradient percent for each color
-    int cyanAscending = 1;
-    if (cyanStartWeight > cyanEndWeight)
-        cyanAscending = -1;
-    int magentaAscending = 1;
-    if (magentaStartWeight > magentaEndWeight)
-        magentaAscending = -1;
-    int yellowAscending = 1;
-    if (yellowStartWeight > yellowEndWeight)
-        yellowAscending = -1;
-
-    //Also, lets keep track of how many percents we're changing (absolute value)
-    int cyanActiveWeights = abs(cyanEndWeight - cyanStartWeight);
-    int magentaActiveWeights = abs(magentaEndWeight - magentaStartWeight);
-    int yellowActiveWeights = abs(yellowEndWeight - yellowStartWeight);
-
-    //Next, calculate the number of layers we have to work with
-    int activeLayers = gradientEndLayer - gradientStartLayer;
-
-    //How much should we change the weight of each color per layer
-    cyanWeightDelta = (float)cyanActiveWeights/(float)activeLayers;
-    magentaWeightDelta = (float)magentaActiveWeights/(float)activeLayers;
-    yellowWeightDelta = (float)yellowActiveWeights/(float)activeLayers;
-
-    //Now these are the variables we'll increment in the loop through the input file
-    int nextActiveLayer = gradientStartLayer;
-    float fCyanNextActiveWeight = cyanStartWeight;
-    int cyanNextActiveWeight = cyanStartWeight;
-    float fMagentaNextActiveWeight = magentaStartWeight;
-    int magentaNextActiveWeight = magentaStartWeight;
-    float fYellowNextActiveWeight = yellowStartWeight;
-    int yellowNextActiveWeight = yellowStartWeight;
-
-
-//    qDebug() << "fNextActiveLayer:" + QString::number(fNextActiveLayer) + " , nextActiveLayer: " + QString::number(nextActiveLayer) + " , fNextActivePercent: " + QString::number(fNextActivePercent) + " , nextActivePercent: " + QString::number(nextActivePercent);
-//    qDebug() << "ascending: " + QString::number(ascending) + ", percentDelta: " + QString::number(percentDelta) + ", layerDelta: " + QString::number(layerDelta) + ", activeLayers: " + QString::number(activeLayers) + ", activePercents: " + QString::number(activePercents);
-    while (!reader.atEnd())
-    {
-        //Read next line, transcribe it
-        currentLine = reader.readLine();
-        writer << currentLine + "\n";
-
-        //If this is a layer we need to add a gradient command to, add it
-        if ((currentLine.contains("; layer " + QString::number(nextActiveLayer)) && (nextActiveLayer < gradientEndLayer)))
-        {
-            writer << "M163 S0 P" + QString::number(cyanNextActiveWeight) + "\n" +
-                      "M163 S1 P" + QString::number(magentaNextActiveWeight) + "\n" +
-                      "M163 S2 P" + QString::number(yellowNextActiveWeight) + "\n" +
-                      "M164 S0" + "\n";
-
-            //Adjust the searching variables to find the next active layer
-            nextActiveLayer += 1;
-            fCyanNextActiveWeight += cyanWeightDelta*cyanAscending;
-            cyanNextActiveWeight = qRound(fCyanNextActiveWeight);
-            fMagentaNextActiveWeight += magentaWeightDelta*magentaAscending;
-            magentaNextActiveWeight = qRound(fMagentaNextActiveWeight);
-            fYellowNextActiveWeight += yellowWeightDelta*yellowAscending;
-            yellowNextActiveWeight = qRound(fYellowNextActiveWeight);
-
-//            qDebug() << "fNextActiveLayer:" + QString::number(fNextActiveLayer) + " , nextActiveLayer: " + QString::number(nextActiveLayer) + " , fNextActivePercent: " + QString::number(fNextActivePercent) + " , nextActivePercent: " + QString::number(nextActivePercent);
-        }
-    }
-    QMessageBox::information(0,"done","All Done!");
-}
-
-//int MainWindow::calculateGradientShifts(int start, int end, int startPercent, int endPercent)
-//{
-//    int range = (end - start)/abs(endPercent - startPercent);
-////    qDebug() << (QString::number(end) + " - " + QString::number(start) + ") / abs (" + QString::number(endPercent) + " - " + QString::number(startPercent) + " = " + QString::number(range));
-//    return range;
-//}
 
 void MainWindow::on_pushButton_clicked()
 {
@@ -261,7 +156,13 @@ void MainWindow::on_gradientEndTextField_returnPressed()
 
 void MainWindow::on_writeGcodeButton_clicked()
 {
-    writeGcode();
+    int gradientStartLayer = ui->gradientStartSlider->value();
+    int gradientEndLayer = ui->gradientEndSlider->value();
+
+    //Get the current Colors of the two gradient buttons
+    QPalette startPal = ui->gradientStartColorButton->palette();
+    QPalette endPal = ui->gradientEndColorButton->palette();
+    writeGcode(gradientStartLayer,gradientEndLayer,startPal,endPal,gcodeFile);
 }
 
 void MainWindow::on_gradientStartColorButton_clicked()

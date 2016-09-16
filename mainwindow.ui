@@ -181,19 +181,33 @@
         </layout>
        </item>
        <item row="1" column="0">
-        <widget class="QPushButton" name="writeGcodeButton">
+        <widget class="QCheckBox" name="retractionCheckbox">
          <property name="enabled">
           <bool>false</bool>
          </property>
          <property name="text">
-          <string>Write Gradient</string>
+          <string>Enable Fancy Retractions</string>
          </property>
         </widget>
        </item>
       </layout>
      </item>
      <item row="0" column="1">
-      <widget class="QPlainTextEdit" name="plainTextEdit"/>
+      <widget class="QPlainTextEdit" name="plainTextEdit">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0" colspan="2">
+      <widget class="QPushButton" name="writeGcodeButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Write Gradient</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -207,13 +221,6 @@
      <height>21</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuFile">
-    <property name="title">
-     <string>File</string>
-    </property>
-    <addaction name="actionOpen_File"/>
-   </widget>
-   <addaction name="menuFile"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
