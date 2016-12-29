@@ -162,7 +162,8 @@ void MainWindow::on_writeGcodeButton_clicked()
     //Get the current Colors of the two gradient buttons
     QPalette startPal = ui->gradientStartColorButton->palette();
     QPalette endPal = ui->gradientEndColorButton->palette();
-    writeGcode(gradientStartLayer,gradientEndLayer,startPal,endPal,gcodeFile);
+    bool fancyRetraction = ui->retractionCheckbox->isChecked();
+    writeGcode(gradientStartLayer,gradientEndLayer,fancyRetraction, startPal,endPal,gcodeFile);
 }
 
 void MainWindow::on_gradientStartColorButton_clicked()
