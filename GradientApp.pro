@@ -15,9 +15,11 @@ win32:RC_ICONS += gradientAppIconLarge.ico
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    gcodeparser.cpp
+    gcodeparser.cpp \
+    gradientcolor.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    gradientcolor.h
 
 FORMS    += mainwindow.ui
 
