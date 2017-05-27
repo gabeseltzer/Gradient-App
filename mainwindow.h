@@ -18,7 +18,7 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_pushButton_clicked();
+    void on_openFileButton_clicked();
 
     void on_gradientStartSlider_sliderMoved(int position);
 
@@ -38,6 +38,8 @@ private slots:
 
     void on_gradientEndColorButton_clicked();
 
+    void on_printerBox_currentIndexChanged(const QString &arg1);
+    
 private:
     Ui::MainWindow *ui;
     void openFile();

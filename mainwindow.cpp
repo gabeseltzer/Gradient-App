@@ -80,16 +80,19 @@ void MainWindow::processGcode(){
 
     ui->writeGcodeButton->setEnabled(true);
 
-    ui->gradientStartColorButton->setEnabled(true);
-    ui->gradientStartColorButton->setStyleSheet("background-color: black");
-    ui->gradientEndColorButton->setEnabled(true);
+    ui->gradientStartSpinBox->setEnabled(true);
+    ui->gradientEndSpinBox->setEnabled(true);
+    ui->gradientEndSpinBox->setValue(100);
+    
     ui->gradientEndColorButton->setStyleSheet("background-color: white");
-
+    ui->gradientStartColorButton->setStyleSheet("background-color: black");
+    
     ui->retractionCheckbox->setEnabled(true);
     ui->plainTextEdit->setEnabled(true);
+    ui->printerBox->setEnabled(true);
 }
 
-void MainWindow::on_pushButton_clicked()
+void MainWindow::on_openFileButton_clicked()
 {
     openFile();
 }
@@ -186,4 +189,22 @@ void MainWindow::on_gradientEndColorButton_clicked()
     QString newStyle = "background-color: " + newColor.name();
     ui->gradientEndColorButton->setStyleSheet(newStyle);
     ui->gradientEndColorButton->update();
+}
+
+void MainWindow::on_printerBox_currentIndexChanged(const QString &arg1)
+{
+    if (arg1 == "Diamond Hotend"){
+        ui->gradientEndColorButton->setEnabled(true);
+        ui->gradientStartColorButton->setEnabled(true);
+        
+        ui->gradientEndSpinBox->setEnabled(false);
+        ui->gradientStartSpinBox->setEnabled(false);
+    }
+    else if (arg1 == "Builder Dual"){
+        ui->gradientEndSpinBox->setEnabled(true);
+        ui->gradientStartSpinBox->setEnabled(true);
+        
+        ui->gradientStartColorButton->setEnabled(false);
+        ui->gradientEndColorButton->setEnabled(false);
+    }
 }
