@@ -182,7 +182,7 @@ void MainWindow::on_writeGcodeButton_clicked()
         writeGcode(gradientStartLayer,gradientEndLayer,
                    fancyRetraction, 
                    startPal,endPal,
-                   gcodeFile,&reader,&writer);
+                   &reader,&writer);
     }
     else if (ui->printerBox->currentText() == "Builder Dual"){
         int gradientStartPercent = ui->gradientStartSpinBox->value();
@@ -190,7 +190,7 @@ void MainWindow::on_writeGcodeButton_clicked()
         writeGcode(gradientStartLayer,gradientEndLayer,
                    fancyRetraction,
                    gradientStartPercent,gradientEndPercent,
-                   gcodeFile,&reader,&writer);
+                   &reader,&writer);
     }
 }
 
