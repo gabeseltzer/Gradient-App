@@ -84,8 +84,8 @@ void MainWindow::processGcode(){
     ui->gradientEndSpinBox->setEnabled(true);
     ui->gradientEndSpinBox->setValue(100);
     
-    ui->gradientEndColorButton->setStyleSheet("background-color: white");
-    ui->gradientStartColorButton->setStyleSheet("background-color: black");
+    ui->gradientEndColorButton->setStyleSheet("background-color: grey");
+    ui->gradientStartColorButton->setStyleSheet("background-color: grey");
     
     ui->retractionCheckbox->setEnabled(true);
     ui->plainTextEdit->setEnabled(true);
@@ -161,12 +161,37 @@ void MainWindow::on_writeGcodeButton_clicked()
 {
     int gradientStartLayer = ui->gradientStartSlider->value();
     int gradientEndLayer = ui->gradientEndSlider->value();
-
-    //Get the current Colors of the two gradient buttons
-    QPalette startPal = ui->gradientStartColorButton->palette();
-    QPalette endPal = ui->gradientEndColorButton->palette();
     bool fancyRetraction = ui->retractionCheckbox->isChecked();
-    writeGcode(gradientStartLayer,gradientEndLayer,fancyRetraction, startPal,endPal,gcodeFile);
+    QString defaultFileSaveName = gcodeFile->fileName();
+    defaultFileSaveName = defaultFileSaveName.mid(0,defaultFileSaveName.size()-6) + " Gradient";
+    QString saveFileName = QFileDialog::getSaveFileName(0, QObject::tr("Save File"), defaultFileSaveName, "Gcode Files(*.gcode);;Text Files (*.txt);;All files (*.*)");
+    if (saveFileName.isNull())
+        return;
+    QTextStream reader(gcodeFile);
+    if (reader.atEnd())
+        reader.seek(0);
+    QFile saveFile(saveFileName);
+    saveFile.open(QIODevice::WriteOnly);
+    QTextStream writer(&saveFile);
+    
+    
+    if (ui->printerBox->currentText() == "Diamond Hotend") {
+        //Get the current Colors of the two gradient buttons
+        QPalette startPal = ui->gradientStartColorButton->palette();
+        QPalette endPal = ui->gradientEndColorButton->palette();
+        writeGcode(gradientStartLayer,gradientEndLayer,
+                   fancyRetraction, 
+                   startPal,endPal,
+                   gcodeFile,&reader,&writer);
+    }
+    else if (ui->printerBox->currentText() == "Builder Dual"){
+        int gradientStartPercent = ui->gradientStartSpinBox->value();
+        int gradientEndPercent = ui->gradientEndSpinBox->value();
+        writeGcode(gradientStartLayer,gradientEndLayer,
+                   fancyRetraction,
+                   gradientStartPercent,gradientEndPercent,
+                   gcodeFile,&reader,&writer);
+    }
 }
 
 void MainWindow::on_gradientStartColorButton_clicked()

@@ -23,11 +23,14 @@ static QVariant findECoordinate(QString currentLine){
 }
 
 static int findToolChange(QString currentLine){
-    return (currentLine.midRef(1,1).toInt()); //This has no error detection
+    return (currentLine.midRef(1,1).toInt()); //TODO: This has no error detection
 }
 
 
-static void writeGcode(int gradientStartLayer, int gradientEndLayer, bool fancyRetraction, QPalette startPal, QPalette endPal, QFile *inputFile){
+static void writeGcode(int gradientStartLayer, int gradientEndLayer, 
+                       bool fancyRetraction, 
+                       QPalette startPal, QPalette endPal, 
+                       QFile *inputFile, QTextStream *reader, QTextStream *writer){
 
     //Get the current Colors of the two gradient buttons
     QColor startColor = startPal.color(QPalette::Button);
@@ -50,18 +53,7 @@ static void writeGcode(int gradientStartLayer, int gradientEndLayer, bool fancyR
     gradientColor magenta(startWeight, endWeight, activeLayers, 2);
 
     QString currentLine;
-    QString defaultFileSaveName = inputFile->fileName();
-    defaultFileSaveName = defaultFileSaveName.mid(0,defaultFileSaveName.size()-6) + " Gradient";
-    QString saveFileName = QFileDialog::getSaveFileName(0, QObject::tr("Save File"), defaultFileSaveName, "Gcode Files(*.gcode);;Text Files (*.txt);;All files (*.*)");
-    if (saveFileName.isNull())
-        return;
-    QTextStream reader(inputFile);
-    if (reader.atEnd())
-        reader.seek(0);
-    QFile saveFile(saveFileName);
-    saveFile.open(QIODevice::WriteOnly);
-    QTextStream writer(&saveFile);
-
+    
     QVariant newECoordinateVariant;
     float prevECoordinate = 0.0;
     bool currentlyRetracting = false;
@@ -73,10 +65,10 @@ static void writeGcode(int gradientStartLayer, int gradientEndLayer, bool fancyR
 
 //    qDebug() << "fNextActiveLayer:" + QString::number(fNextActiveLayer) + " , nextActiveLayer: " + QString::number(nextActiveLayer) + " , fNextActivePercent: " + QString::number(fNextActivePercent) + " , nextActivePercent: " + QString::number(nextActivePercent);
 //    qDebug() << "ascending: " + QString::number(ascending) + ", percentDelta: " + QString::number(percentDelta) + ", layerDelta: " + QString::number(layerDelta) + ", activeLayers: " + QString::number(activeLayers) + ", activePercents: " + QString::number(activePercents);
-    while (!reader.atEnd())
+    while (!reader->atEnd())
     {
         //Read next line, transcribe it
-        currentLine = reader.readLine();
+        currentLine = reader->readLine();
 
         //Handle Fancy Retraction:
         if (fancyRetraction){
@@ -103,33 +95,33 @@ static void writeGcode(int gradientStartLayer, int gradientEndLayer, bool fancyR
                 float newECoordinate = newECoordinateVariant.toFloat();
                 if (currentlyRetracting){
                     if (newECoordinate > prevECoordinate){
-                        writer << "//STOP RETRACTION \n";
-                        writer << (currentLine + "\n");
-                        writer << ("T" + QString::number(previousTool) + "\n");
+                        *writer << "//STOP RETRACTION \n";
+                        *writer << (currentLine + "\n");
+                        *writer << ("T" + QString::number(previousTool) + "\n");
                         currentlyRetracting = false;
                         prevECoordinate = newECoordinate;
                     }
                     else
-                        writer << currentLine + "\n";
+                        *writer << currentLine + "\n";
                 }
                 else{
                     if (newECoordinate < prevECoordinate){
-                        writer << "//START RETRACTION \n";
-                        writer << "T15 \n";
-                        writer << (currentLine + "\n");
+                        *writer << "//START RETRACTION \n";
+                        *writer << "T15 \n";
+                        *writer << (currentLine + "\n");
                         currentlyRetracting = true;
                         prevECoordinate = newECoordinate;
                     }
                     else
-                        writer << currentLine + "\n";
+                        *writer << currentLine + "\n";
                 }
             }
             else
-                writer << currentLine + "\n";
+                *writer << currentLine + "\n";
 
         }
         else {
-            writer << currentLine + "\n";
+            *writer << currentLine + "\n";
 
         }
 
@@ -139,13 +131,93 @@ static void writeGcode(int gradientStartLayer, int gradientEndLayer, bool fancyR
 //            //Adjust the searching variables to find the next active layer
             nextActiveLayer += 1;
 
-            writer << cyan.printAndIncrement();
-            writer << yellow.printAndIncrement();
-            writer << magenta.printAndIncrement();
-            writer << "M164 S0\n";
+            *writer << cyan.printAndIncrement();
+            *writer << yellow.printAndIncrement();
+            *writer << magenta.printAndIncrement();
+            *writer << "M164 S0\n";
 
 //            qDebug() << "fNextActiveLayer:" + QString::number(fNextActiveLayer) + " , nextActiveLayer: " + QString::number(nextActiveLayer) + " , fNextActivePercent: " + QString::number(fNextActivePercent) + " , nextActivePercent: " + QString::number(nextActivePercent);
         }
     }
     QMessageBox::information(0,"done","All Done!");
+}
+
+static void writeGcode(int gradientStartLayer, int gradientEndLayer,
+                       bool fancyRetraction,
+                       int gradientStartPercent, int gradientEndPercent,
+                       QFile *inputFile, QTextStream *reader, QTextStream *writer){
+    qDebug() << "UWOTM8";
+    
+//    QString currentLine;
+//        QString defaultFileSaveName = gcodeFile->fileName();
+//        defaultFileSaveName = defaultFileSaveName.mid(0,defaultFileSaveName.size()-6) + " Gradient";
+//        QString saveFileName = QFileDialog::getSaveFileName(this, tr("Save File"), defaultFileSaveName, "Gcode Files(*.gcode);;Text Files (*.txt);;All files (*.*)");
+//        if (saveFileName.isNull())
+//            return;
+//        QTextStream reader(gcodeFile);
+//        QFile saveFile(saveFileName);
+//        saveFile.open(QIODevice::WriteOnly);
+//        QTextStream writer(&saveFile);
+    
+//        //Default Layer and Percent deltas
+//        float percentDelta = 1.0;
+//        float layerDelta = 1.0;
+    
+//    //    int delta = 1;
+//    //    if (gradientStartPercent > gradientEndPercent)
+//    //        delta = -1;
+    
+//    //    int nextGLayer = gradientStartLayer;
+//    //    int gAmmount = gradientStartPercent;
+//    //    int interval = calculateGradientShifts(gradientStartLayer, gradientEndLayer, gradientStartPercent, gradientEndPercent);
+    
+//        //First, check to see if we're increasing gradient percent
+//        int ascending = 1;
+//        if (gradientStartPercent > gradientEndPercent)
+//            ascending = -1;
+    
+//        //Also, lets keep track of how many percents we're changing (absolute value)
+//        int activePercents = abs(gradientEndPercent - gradientStartPercent);
+//        //Next, calculate the number of layers we have to work with
+//        int activeLayers = gradientEndLayer - gradientStartLayer;
+    
+//        //See if we're moving more than one percent at a time, or more than one layer at a time
+//        if (activeLayers < activePercents)
+//            percentDelta = (float)activePercents/(float)activeLayers;
+//        else
+//            layerDelta = (float)activeLayers/(float)activePercents;
+    
+//        float fNextActiveLayer = gradientStartLayer;
+//        int nextActiveLayer = gradientStartLayer;
+//        float fNextActivePercent = gradientStartPercent;
+//        int nextActivePercent = gradientStartPercent;
+//        qDebug() << "fNextActiveLayer:" + QString::number(fNextActiveLayer) + " , nextActiveLayer: " + QString::number(nextActiveLayer) + " , fNextActivePercent: " + QString::number(fNextActivePercent) + " , nextActivePercent: " + QString::number(nextActivePercent);
+//        qDebug() << "ascending: " + QString::number(ascending) + ", percentDelta: " + QString::number(percentDelta) + ", layerDelta: " + QString::number(layerDelta) + ", activeLayers: " + QString::number(activeLayers) + ", activePercents: " + QString::number(activePercents);
+//        while (!reader.atEnd())
+//        {
+//            //Read next line, transcribe it
+//            currentLine = reader.readLine();
+//            writer << currentLine + "\n";
+    
+//            //If this is a layer we need to add a gradient command to, add it
+//            if ((currentLine.contains("; layer " + QString::number(nextActiveLayer)) && (nextActiveLayer < gradientEndLayer)))
+//            {
+//                writer << "G93 R" + QString::number(nextActivePercent) + "\n";
+    
+//                //Adjust the searching variables to find the next active layer
+//                fNextActiveLayer += layerDelta;
+//                nextActiveLayer = qRound(fNextActiveLayer);
+//                fNextActivePercent += (percentDelta * ascending);
+//                nextActivePercent = qRound(fNextActivePercent);
+//                qDebug() << "fNextActiveLayer:" + QString::number(fNextActiveLayer) + " , nextActiveLayer: " + QString::number(nextActiveLayer) + " , fNextActivePercent: " + QString::number(fNextActivePercent) + " , nextActivePercent: " + QString::number(nextActivePercent);
+//            }
+//        }
+//        QMessageBox::information(0,"done","All Done!");
+//    }
+    
+//    int MainWindow::calculateGradientShifts(int start, int end, int startPercent, int endPercent)
+//    {
+//        int range = (end - start)/abs(endPercent - startPercent);
+//    //    qDebug() << (QString::number(end) + " - " + QString::number(start) + ") / abs (" + QString::number(endPercent) + " - " + QString::number(startPercent) + " = " + QString::number(range));
+//        return range;
 }
