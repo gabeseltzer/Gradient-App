@@ -30,7 +30,8 @@ static int findToolChange(QString currentLine){
 static void writeGcode(int gradientStartLayer, int gradientEndLayer, 
                        bool fancyRetraction, 
                        QPalette startPal, QPalette endPal, 
-                       QTextStream *reader, QTextStream *writer){
+                       QTextStream *reader, QTextStream *writer,
+                       bool fiveColor){
 
     //Get the current Colors of the two gradient buttons
     QColor startColor = startPal.color(QPalette::Button);
@@ -51,7 +52,15 @@ static void writeGcode(int gradientStartLayer, int gradientEndLayer,
     startWeight = startColor.yellow();
     endWeight = endColor.yellow();
     gradientColor magenta(startWeight, endWeight, activeLayers, 2);
-
+    
+    startWeight = startColor.black();
+    endWeight = endColor.black();
+    gradientColor black(startWeight, endWeight, activeLayers, 3);
+    
+    startWeight = 256 - startWeight;
+    endWeight = 256 - endWeight;
+    gradientColor white(startWeight, endWeight, activeLayers, 4);
+    
     QString currentLine;
     
     QVariant newECoordinateVariant;
@@ -126,6 +135,10 @@ static void writeGcode(int gradientStartLayer, int gradientEndLayer,
             *writer << cyan.printAndIncrement();
             *writer << yellow.printAndIncrement();
             *writer << magenta.printAndIncrement();
+            if (fiveColor) {
+                *writer << black.printAndIncrement();
+                *writer << white.printAndIncrement();
+            }
             *writer << "M164 S0\n";
 
 //            qDebug() << "fNextActiveLayer:" + QString::number(fNextActiveLayer) + " , nextActiveLayer: " + QString::number(nextActiveLayer) + " , fNextActivePercent: " + QString::number(fNextActivePercent) + " , nextActivePercent: " + QString::number(nextActivePercent);
@@ -240,6 +253,8 @@ static void writeGcode(int gradientStartLayer, int gradientEndLayer,
     }
     QMessageBox::information(0,"done","All Done!");
 }
+
+
     
 static int calculateGradientShifts(int start, int end, int startPercent, int endPercent)
     {

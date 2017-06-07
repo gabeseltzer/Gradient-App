@@ -182,7 +182,16 @@ void MainWindow::on_writeGcodeButton_clicked()
         writeGcode(gradientStartLayer,gradientEndLayer,
                    fancyRetraction, 
                    startPal,endPal,
-                   &reader,&writer);
+                   &reader,&writer, false);
+    }
+    if (ui->printerBox->currentText() == "Diamond Hotend 5 Color") {
+        //Get the current Colors of the two gradient buttons
+        QPalette startPal = ui->gradientStartColorButton->palette();
+        QPalette endPal = ui->gradientEndColorButton->palette();
+        writeGcode(gradientStartLayer,gradientEndLayer,
+                   fancyRetraction, 
+                   startPal,endPal,
+                   &reader,&writer, true);
     }
     else if (ui->printerBox->currentText() == "Builder Dual"){
         int gradientStartPercent = ui->gradientStartSpinBox->value();
@@ -218,7 +227,7 @@ void MainWindow::on_gradientEndColorButton_clicked()
 
 void MainWindow::on_printerBox_currentIndexChanged(const QString &arg1)
 {
-    if (arg1 == "Diamond Hotend"){
+    if (arg1 == "Diamond Hotend" || arg1 == "Diamond Hotend 5 Color"){
         ui->gradientEndColorButton->setEnabled(true);
         ui->gradientStartColorButton->setEnabled(true);
         
