@@ -26,7 +26,7 @@ static int findToolChange(QString currentLine){
     return (currentLine.midRef(1,1).toInt()); //TODO: This has no error detection
 }
 
-
+//WRITE GCODE FOR DIAMOND HOTEND
 static void writeGcode(int gradientStartLayer, int gradientEndLayer, 
                        bool fancyRetraction, 
                        QPalette startPal, QPalette endPal, 
@@ -81,21 +81,13 @@ static void writeGcode(int gradientStartLayer, int gradientEndLayer,
                 prevECoordinate = 0.0;
             else if (command.startsWith('T'))
                 previousTool = findToolChange(currentLine); //Not sure about this interaction
-            
-//            QString commandType = identifyCommand(currentLine); //Todo: this should probably use an enum or something
-//            if (commandType == "G1" || commandType == "G0")
-//                int newECoordinate = findECoordinate(currentLine);
-//            else if (commandType == "G92") {
-//                int prevEcoordinate = 0;
-//            }
-//            else if (commnadType == "T*")
                 
-            qDebug() << "Command: " + command + ", prevECoordinate: " + QString::number(prevECoordinate) + ", newECoordinate: " + newECoordinateVariant.toString();
+//            qDebug() << "Command: " + command + ", prevECoordinate: " + QString::number(prevECoordinate) + ", newECoordinate: " + newECoordinateVariant.toString();
             if (!newECoordinateVariant.isNull()){
                 float newECoordinate = newECoordinateVariant.toFloat();
                 if (currentlyRetracting){
                     if (newECoordinate > prevECoordinate){
-                        *writer << "//STOP RETRACTION \n";
+//                        *writer << "//STOP RETRACTION \n";
                         *writer << (currentLine + "\n");
                         *writer << ("T" + QString::number(previousTool) + "\n");
                         currentlyRetracting = false;
@@ -106,7 +98,7 @@ static void writeGcode(int gradientStartLayer, int gradientEndLayer,
                 }
                 else{
                     if (newECoordinate < prevECoordinate){
-                        *writer << "//START RETRACTION \n";
+//                        *writer << "//START RETRACTION \n";
                         *writer << "T15 \n";
                         *writer << (currentLine + "\n");
                         currentlyRetracting = true;
@@ -142,114 +134,112 @@ static void writeGcode(int gradientStartLayer, int gradientEndLayer,
     QMessageBox::information(0,"done","All Done!");
 }
 
+//WRITE GCODE FOR BUILDER DUAL
 static void writeGcode(int gradientStartLayer, int gradientEndLayer,
                        bool fancyRetraction,
                        int gradientStartPercent, int gradientEndPercent,
                        QTextStream *reader, QTextStream *writer){
-    qDebug() << "UWOTM8";
     
     QString currentLine;
     
-        //Default Layer and Percent deltas
-        float percentDelta = 1.0;
-        float layerDelta = 1.0;
+    //Default Layer and Percent deltas
+    float percentDelta = 1.0;
+    float layerDelta = 1.0;
+
+    //First, check to see if we're increasing gradient percent
+    int ascending = 1;
+    if (gradientStartPercent > gradientEndPercent)
+        ascending = -1;
+
+    //Also, lets keep track of how many percents we're changing (absolute value)
+    int activePercents = abs(gradientEndPercent - gradientStartPercent);
+    //Next, calculate the number of layers we have to work with
+    int activeLayers = gradientEndLayer - gradientStartLayer;
+
+    //See if we're moving more than one percent at a time, or more than one layer at a time
+    if (activeLayers < activePercents)
+        percentDelta = (float)activePercents/(float)activeLayers;
+    else
+        layerDelta = (float)activeLayers/(float)activePercents;
+
+    float fNextActiveLayer = gradientStartLayer;
+    int nextActiveLayer = gradientStartLayer;
+    float fNextActivePercent = gradientStartPercent;
+    int nextActivePercent = gradientStartPercent;
+
+    QVariant newECoordinateVariant;
+    float prevECoordinate = 0.0;
+    bool currentlyRetracting = false;
+    int previousTool = 0;
     
-        //First, check to see if we're increasing gradient percent
-        int ascending = 1;
-        if (gradientStartPercent > gradientEndPercent)
-            ascending = -1;
-    
-        //Also, lets keep track of how many percents we're changing (absolute value)
-        int activePercents = abs(gradientEndPercent - gradientStartPercent);
-        //Next, calculate the number of layers we have to work with
-        int activeLayers = gradientEndLayer - gradientStartLayer;
-    
-        //See if we're moving more than one percent at a time, or more than one layer at a time
-        if (activeLayers < activePercents)
-            percentDelta = (float)activePercents/(float)activeLayers;
-        else
-            layerDelta = (float)activeLayers/(float)activePercents;
-    
-        float fNextActiveLayer = gradientStartLayer;
-        int nextActiveLayer = gradientStartLayer;
-        float fNextActivePercent = gradientStartPercent;
-        int nextActivePercent = gradientStartPercent;
-        qDebug() << "fNextActiveLayer:" + QString::number(fNextActiveLayer) + " , nextActiveLayer: " + QString::number(nextActiveLayer) + " , fNextActivePercent: " + QString::number(fNextActivePercent) + " , nextActivePercent: " + QString::number(nextActivePercent);
-        qDebug() << "ascending: " + QString::number(ascending) + ", percentDelta: " + QString::number(percentDelta) + ", layerDelta: " + QString::number(layerDelta) + ", activeLayers: " + QString::number(activeLayers) + ", activePercents: " + QString::number(activePercents);
+    while (!reader->atEnd())
+    {
+        //Read next line, transcribe it
+        currentLine = reader->readLine();
         
-        QVariant newECoordinateVariant;
-        float prevECoordinate = 0.0;
-        bool currentlyRetracting = false;
-        int previousTool = 0;
-        
-        while (!reader->atEnd())
-        {
-            //Read next line, transcribe it
-            currentLine = reader->readLine();
+        //Handle Fancy Retraction:
+        if (fancyRetraction){
             
-            //Handle Fancy Retraction:
-            if (fancyRetraction){
+            QStringList splitLine = currentLine.split(" ", QString::SkipEmptyParts);
+            QString command = splitLine[0];
+            if (command == "G1" || command == "G0")
+                newECoordinateVariant = findECoordinate(currentLine);
+            else if (command == "G92")
+                prevECoordinate = 0.0;
+            else if (command.startsWith('T'))
+                previousTool = findToolChange(currentLine); //Not sure about this interaction
                 
-                QStringList splitLine = currentLine.split(" ", QString::SkipEmptyParts);
-                QString command = splitLine[0];
-                if (command == "G1" || command == "G0")
-                    newECoordinateVariant = findECoordinate(currentLine);
-                else if (command == "G92")
-                    prevECoordinate = 0.0;
-                else if (command.startsWith('T'))
-                    previousTool = findToolChange(currentLine); //Not sure about this interaction
-                    
-                qDebug() << "Command: " + command + ", prevECoordinate: " + QString::number(prevECoordinate) + ", newECoordinate: " + newECoordinateVariant.toString();
-                if (!newECoordinateVariant.isNull()){
-                    float newECoordinate = newECoordinateVariant.toFloat();
-                    if (currentlyRetracting){
-                        if (newECoordinate > prevECoordinate){
-                            *writer << "//STOP RETRACTION \n";
-                            *writer << (currentLine + "\n");
-                            *writer << ("G93 R" + QString::number(nextActivePercent-percentDelta) + "\n");
-                            currentlyRetracting = false;
-                            prevECoordinate = newECoordinate;
-                        }
-                        else
-                            *writer << currentLine + "\n";
+            qDebug() << "Command: " + command + ", prevECoordinate: " + QString::number(prevECoordinate) + ", newECoordinate: " + newECoordinateVariant.toString();
+            if (!newECoordinateVariant.isNull()){
+                float newECoordinate = newECoordinateVariant.toFloat();
+                if (currentlyRetracting){
+                    if (newECoordinate > prevECoordinate){
+                        *writer << "//STOP RETRACTION \n";
+                        *writer << (currentLine + "\n");
+                        *writer << ("G93 R" + QString::number(nextActivePercent-percentDelta) + "\n");
+                        currentlyRetracting = false;
+                        prevECoordinate = newECoordinate;
                     }
-                    else{
-                        if (newECoordinate < prevECoordinate){
-                            *writer << "//START RETRACTION \n";
-                            *writer << "G93 R50 \n";
-                            *writer << (currentLine + "\n");
-                            currentlyRetracting = true;
-                            prevECoordinate = newECoordinate;
-                        }
-                        else
-                            *writer << currentLine + "\n";
-                    }
+                    else
+                        *writer << currentLine + "\n";
                 }
-                else
-                    *writer << currentLine + "\n";
-    
+                else{
+                    if (newECoordinate < prevECoordinate){
+                        *writer << "//START RETRACTION \n";
+                        *writer << "G93 R50 \n";
+                        *writer << (currentLine + "\n");
+                        currentlyRetracting = true;
+                        prevECoordinate = newECoordinate;
+                    }
+                    else
+                        *writer << currentLine + "\n";
+                }
             }
-            else {
+            else
                 *writer << currentLine + "\n";
-    
-            }
-    
-            //If this is a layer we need to add a gradient command to, add it
-            if ((currentLine.contains("; layer " + QString::number(nextActiveLayer)) && (nextActiveLayer < gradientEndLayer)))
-            {
-                if (!currentlyRetracting)
-                    *writer << "G93 R" + QString::number(nextActivePercent) + "\n";
-    
-                //Adjust the searching variables to find the next active layer
-                fNextActiveLayer += layerDelta;
-                nextActiveLayer = qRound(fNextActiveLayer);
-                fNextActivePercent += (percentDelta * ascending);
-                nextActivePercent = qRound(fNextActivePercent);
-                qDebug() << "fNextActiveLayer:" + QString::number(fNextActiveLayer) + " , nextActiveLayer: " + QString::number(nextActiveLayer) + " , fNextActivePercent: " + QString::number(fNextActivePercent) + " , nextActivePercent: " + QString::number(nextActivePercent);
-            }
+
         }
-        QMessageBox::information(0,"done","All Done!");
+        else {
+            *writer << currentLine + "\n";
+
+        }
+
+        //If this is a layer we need to add a gradient command to, add it
+        if ((currentLine.contains("; layer " + QString::number(nextActiveLayer)) && (nextActiveLayer < gradientEndLayer)))
+        {
+            if (!currentlyRetracting)
+                *writer << "G93 R" + QString::number(nextActivePercent) + "\n";
+
+            //Adjust the searching variables to find the next active layer
+            fNextActiveLayer += layerDelta;
+            nextActiveLayer = qRound(fNextActiveLayer);
+            fNextActivePercent += (percentDelta * ascending);
+            nextActivePercent = qRound(fNextActivePercent);
+//            qDebug() << "fNextActiveLayer:" + QString::number(fNextActiveLayer) + " , nextActiveLayer: " + QString::number(nextActiveLayer) + " , fNextActivePercent: " + QString::number(fNextActivePercent) + " , nextActivePercent: " + QString::number(nextActivePercent);
+        }
     }
+    QMessageBox::information(0,"done","All Done!");
+}
     
 static int calculateGradientShifts(int start, int end, int startPercent, int endPercent)
     {
