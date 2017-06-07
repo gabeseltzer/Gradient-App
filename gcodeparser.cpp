@@ -176,16 +176,69 @@ static void writeGcode(int gradientStartLayer, int gradientEndLayer,
         int nextActivePercent = gradientStartPercent;
         qDebug() << "fNextActiveLayer:" + QString::number(fNextActiveLayer) + " , nextActiveLayer: " + QString::number(nextActiveLayer) + " , fNextActivePercent: " + QString::number(fNextActivePercent) + " , nextActivePercent: " + QString::number(nextActivePercent);
         qDebug() << "ascending: " + QString::number(ascending) + ", percentDelta: " + QString::number(percentDelta) + ", layerDelta: " + QString::number(layerDelta) + ", activeLayers: " + QString::number(activeLayers) + ", activePercents: " + QString::number(activePercents);
+        
+        QVariant newECoordinateVariant;
+        float prevECoordinate = 0.0;
+        bool currentlyRetracting = false;
+        int previousTool = 0;
+        
         while (!reader->atEnd())
         {
             //Read next line, transcribe it
             currentLine = reader->readLine();
-            *writer << currentLine + "\n";
+            
+            //Handle Fancy Retraction:
+            if (fancyRetraction){
+                
+                QStringList splitLine = currentLine.split(" ", QString::SkipEmptyParts);
+                QString command = splitLine[0];
+                if (command == "G1" || command == "G0")
+                    newECoordinateVariant = findECoordinate(currentLine);
+                else if (command == "G92")
+                    prevECoordinate = 0.0;
+                else if (command.startsWith('T'))
+                    previousTool = findToolChange(currentLine); //Not sure about this interaction
+                    
+                qDebug() << "Command: " + command + ", prevECoordinate: " + QString::number(prevECoordinate) + ", newECoordinate: " + newECoordinateVariant.toString();
+                if (!newECoordinateVariant.isNull()){
+                    float newECoordinate = newECoordinateVariant.toFloat();
+                    if (currentlyRetracting){
+                        if (newECoordinate > prevECoordinate){
+                            *writer << "//STOP RETRACTION \n";
+                            *writer << (currentLine + "\n");
+                            *writer << ("G93 R" + QString::number(nextActivePercent-percentDelta) + "\n");
+                            currentlyRetracting = false;
+                            prevECoordinate = newECoordinate;
+                        }
+                        else
+                            *writer << currentLine + "\n";
+                    }
+                    else{
+                        if (newECoordinate < prevECoordinate){
+                            *writer << "//START RETRACTION \n";
+                            *writer << "G93 R50 \n";
+                            *writer << (currentLine + "\n");
+                            currentlyRetracting = true;
+                            prevECoordinate = newECoordinate;
+                        }
+                        else
+                            *writer << currentLine + "\n";
+                    }
+                }
+                else
+                    *writer << currentLine + "\n";
+    
+            }
+            else {
+                *writer << currentLine + "\n";
+    
+            }
     
             //If this is a layer we need to add a gradient command to, add it
             if ((currentLine.contains("; layer " + QString::number(nextActiveLayer)) && (nextActiveLayer < gradientEndLayer)))
             {
-                *writer << "G93 R" + QString::number(nextActivePercent) + "\n";
+                if (!currentlyRetracting)
+                    *writer << "G93 R" + QString::number(nextActivePercent) + "\n";
     
                 //Adjust the searching variables to find the next active layer
                 fNextActiveLayer += layerDelta;
