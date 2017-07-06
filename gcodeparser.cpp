@@ -23,7 +23,16 @@ static QVariant findECoordinate(QString currentLine){
 }
 
 static int findToolChange(QString currentLine){
-    return (currentLine.midRef(1,1).toInt()); //TODO: This has no error detection
+    int beginning, ending, final;
+    QStringRef num;
+    beginning = currentLine.indexOf(QRegExp("T\\d+\\s*(;{1}.|$)"));
+    if (beginning >= 0) {
+        beginning++;
+        ending = currentLine.indexOf(";", beginning);
+        final = ending >= beginning ? ending - beginning : -1;
+        num = currentLine.midRef(beginning,final);
+    }
+    return (num.toInt());
 }
 
 //WRITE GCODE FOR DIAMOND HOTEND
@@ -82,12 +91,15 @@ static void writeGcode(int gradientStartLayer, int gradientEndLayer,
         //Handle Fancy Retraction:
         if (fancyRetraction){
             
-            QStringList splitLine = currentLine.split(" ", QString::SkipEmptyParts);
+            QStringList splitLine = currentLine.split(QRegularExpression("[ ;]"), QString::SkipEmptyParts);
             QString command = splitLine[0];
             if (command == "G1" || command == "G0")
                 newECoordinateVariant = findECoordinate(currentLine);
             else if (command == "G92")
-                prevECoordinate = 0.0;
+                foreach (QString parameter, splitLine){
+                    if (parameter.startsWith('E'))
+                        prevECoordinate = parameter.midRef(1).toFloat();
+                }
             else if (command.startsWith('T'))
                 previousTool = findToolChange(currentLine); //Not sure about this interaction
                 
@@ -193,16 +205,19 @@ static void writeGcode(int gradientStartLayer, int gradientEndLayer,
         //Handle Fancy Retraction:
         if (fancyRetraction){
             
-            QStringList splitLine = currentLine.split(" ", QString::SkipEmptyParts);
+            QStringList splitLine = currentLine.split(QRegularExpression("[ ;]"), QString::SkipEmptyParts);
             QString command = splitLine[0];
             if (command == "G1" || command == "G0")
                 newECoordinateVariant = findECoordinate(currentLine);
             else if (command == "G92")
-                prevECoordinate = 0.0;
+                foreach (QString parameter, splitLine){
+                    if (parameter.startsWith('E'))
+                        prevECoordinate = parameter.midRef(1).toFloat();
+                }
             else if (command.startsWith('T'))
-                previousTool = findToolChange(currentLine); //Not sure about this interaction
+                previousTool = findToolChange(currentLine);
                 
-            qDebug() << "Command: " + command + ", prevECoordinate: " + QString::number(prevECoordinate) + ", newECoordinate: " + newECoordinateVariant.toString();
+            //qDebug() << "Command: " + command + ", prevECoordinate: " + QString::number(prevECoordinate) + ", newECoordinate: " + newECoordinateVariant.toString();
             if (!newECoordinateVariant.isNull()){
                 float newECoordinate = newECoordinateVariant.toFloat();
                 if (currentlyRetracting){
@@ -251,14 +266,14 @@ static void writeGcode(int gradientStartLayer, int gradientEndLayer,
 //            qDebug() << "fNextActiveLayer:" + QString::number(fNextActiveLayer) + " , nextActiveLayer: " + QString::number(nextActiveLayer) + " , fNextActivePercent: " + QString::number(fNextActivePercent) + " , nextActivePercent: " + QString::number(nextActivePercent);
         }
     }
-    QMessageBox::information(0,"done","All Done!");
+    QMessageBox::information(0,"Done","All Done!");
 }
 
 
     
-static int calculateGradientShifts(int start, int end, int startPercent, int endPercent)
-    {
-        int range = (end - start)/abs(endPercent - startPercent);
-    //    qDebug() << (QString::number(end) + " - " + QString::number(start) + ") / abs (" + QString::number(endPercent) + " - " + QString::number(startPercent) + " = " + QString::number(range));
-        return range;
-}
+//static int calculateGradientShifts(int start, int end, int startPercent, int endPercent)
+//    {
+//        int range = (end - start)/abs(endPercent - startPercent);
+//    //    qDebug() << (QString::number(end) + " - " + QString::number(start) + ") / abs (" + QString::number(endPercent) + " - " + QString::number(startPercent) + " = " + QString::number(range));
+//        return range;
+//}

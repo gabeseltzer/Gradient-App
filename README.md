@@ -3,7 +3,7 @@ A QT Gui app for postprocessing Gcode to add a gradient. Works with Simplify3D o
 This app was created by Gabriel Seltzer. Some of the code/ideas came from Colby Lippincott. 
 It is licensed under LGPL V3. There's a copy of the license in the repo, as per the requirements of the license.
 
-**Please post any and all issues so I can fix them, and share your results with me as well! I want to know that my code works, so send pictures!**
+**Please post any and all issues so I can fix them, and share your results with me as well! I want to know that my code works, so send pictures! If you have any suggestions, or looked at my code and want to make it less terrible, please also get in touch with me.**
 
 Check out my first prerelease here: https://github.com/Memnarch1113/Gradient-App/releases
 
