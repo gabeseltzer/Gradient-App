@@ -91,7 +91,7 @@ static void writeGcode(int gradientStartLayer, int gradientEndLayer,
         //Handle Fancy Retraction:
         if (fancyRetraction){
             
-            QStringList splitLine = currentLine.split(QRegularExpression("[ ;]"), QString::SkipEmptyParts);
+            QStringList splitLine = currentLine.split(QRegExp("[ ;]"), QString::SkipEmptyParts);
             QString command = splitLine[0];
             if (command == "G1" || command == "G0")
                 newECoordinateVariant = findECoordinate(currentLine);
@@ -101,7 +101,8 @@ static void writeGcode(int gradientStartLayer, int gradientEndLayer,
                         prevECoordinate = parameter.midRef(1).toFloat();
                 }
             else if (command.startsWith('T'))
-                previousTool = findToolChange(currentLine); //Not sure about this interaction
+                previousTool = command.midRef(1).toInt(); //TODO TEST 
+//                previousTool = findToolChange(currentLine); //Not sure about this interaction
                 
 //            qDebug() << "Command: " + command + ", prevECoordinate: " + QString::number(prevECoordinate) + ", newECoordinate: " + newECoordinateVariant.toString();
             if (!newECoordinateVariant.isNull()){
@@ -156,7 +157,7 @@ static void writeGcode(int gradientStartLayer, int gradientEndLayer,
 //            qDebug() << "fNextActiveLayer:" + QString::number(fNextActiveLayer) + " , nextActiveLayer: " + QString::number(nextActiveLayer) + " , fNextActivePercent: " + QString::number(fNextActivePercent) + " , nextActivePercent: " + QString::number(nextActivePercent);
         }
     }
-    QMessageBox::information(0,"done","All Done!");
+    QMessageBox::information(0,"Done","All Done!");
 }
 
 //WRITE GCODE FOR BUILDER DUAL
@@ -205,7 +206,7 @@ static void writeGcode(int gradientStartLayer, int gradientEndLayer,
         //Handle Fancy Retraction:
         if (fancyRetraction){
             
-            QStringList splitLine = currentLine.split(QRegularExpression("[ ;]"), QString::SkipEmptyParts);
+            QStringList splitLine = currentLine.split(QRegExp("[ ;]"), QString::SkipEmptyParts);
             QString command = splitLine[0];
             if (command == "G1" || command == "G0")
                 newECoordinateVariant = findECoordinate(currentLine);
@@ -215,7 +216,8 @@ static void writeGcode(int gradientStartLayer, int gradientEndLayer,
                         prevECoordinate = parameter.midRef(1).toFloat();
                 }
             else if (command.startsWith('T'))
-                previousTool = findToolChange(currentLine);
+                previousTool = command.midRef(1).toInt(); //TODO TEST 
+//                previousTool = findToolChange(currentLine);
                 
             //qDebug() << "Command: " + command + ", prevECoordinate: " + QString::number(prevECoordinate) + ", newECoordinate: " + newECoordinateVariant.toString();
             if (!newECoordinateVariant.isNull()){
