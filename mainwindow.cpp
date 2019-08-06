@@ -19,44 +19,49 @@ QFile *gcodeFile;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow);
 {
     ui->setupUi(this);
 }
 
-MainWindow::~MainWindow()
-{
-    delete ui;
-}
-
 void MainWindow::openFile() {
+
+    // TODO: Try https://doc.qt.io/qt-5/qstandardpaths.html#StandardLocation-enum instead of C://
+    // TODO: Also, you should probably use an object that actually uses paths, not turn this into a string
     QString filename = QFileDialog::getOpenFileName(this, tr("Open File"), "C://", "Gcode Files(*.gcode);;Text Files (*.txt);;All files (*.*)");
+    
     if (filename.isNull())
         return;
+
     ui->filePath->setText(filename);
+
     gcodeFile = new QFile(filename);
     if(!gcodeFile->open(QIODevice::ReadOnly))
         QMessageBox::information(0,"info",gcodeFile->errorString());
+
+// TODO: Make the following 3 lines into a function, because it is not really part of openFile
     QTextStream in(gcodeFile);
     ui->plainTextEdit->setPlainText(in.readAll());
     in.seek(0);
-     processGcode();
+    
+    processGcode();
 }
 
+
+// TODO: This should probably go into the kernel side
 int MainWindow::countLayers(){
     QTextStream reader(gcodeFile);
     QString currentLine;
-    int lineCount = 0;
+    int layerCount = 0;
     while(!reader.atEnd()){
         currentLine = reader.readLine();
-        //TODO: Put code in the plainTextEdit widget here, so I only have to run through the gcode file once
         if (currentLine.contains("; layer"))
         {
-            lineCount++;
+            layerCount++;
         }
     }
     reader.seek(0);
-    return lineCount;
+    return layerCount;
 
 }
 

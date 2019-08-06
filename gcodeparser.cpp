@@ -30,7 +30,7 @@ static int findToolChange(QString currentLine){
 static void writeGcode(int gradientStartLayer, int gradientEndLayer, 
                        bool fancyRetraction, 
                        QPalette startPal, QPalette endPal, 
-                       QTextStream *reader, QTextStream *writer){
+                       QTextStream& reader, QTextStream& writer){
 
     //Get the current Colors of the two gradient buttons
     QColor startColor = startPal.color(QPalette::Button);

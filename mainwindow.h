@@ -5,8 +5,12 @@
 #include <QFile>
 #include <QVector>
 
+#include <memory>
+
 namespace Ui {
-class MainWindow;
+    // Forward declaring Ui::MainWindows that is defined in `ui_mainwindow.h`
+    // which is a pre-build-time generated file from mainwindow.ui.
+    class MainWindow; 
 }
 
 class MainWindow : public QMainWindow
@@ -14,8 +18,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+    explicit MainWindow(QWidget *parent = nullptr);
 
 private slots:
     void on_openFileButton_clicked();
@@ -41,7 +44,8 @@ private slots:
     void on_printerBox_currentIndexChanged(const QString &arg1);
     
 private:
-    Ui::MainWindow *ui;
+    std::unique_ptr<Ui::MainWindow> ui;
+
     void openFile();
     void processGcode();
     int countLayers();
