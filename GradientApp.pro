@@ -23,7 +23,7 @@ HEADERS  += mainwindow.h \
 
 FORMS    += mainwindow.ui
 
-QMAKE_LFLAGS += -static-libgcc
+#QMAKE_LFLAGS += -static-libgcc
 
 DISTFILES += \
     Icons/Gradient App Icon.ai \
